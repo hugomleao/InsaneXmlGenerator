@@ -14,7 +14,7 @@ import reader.Reader;
 public class Model {
 
 	private ArrayList<Node> nodes = new ArrayList<Node>();
-	private ArrayList<FemElement> elements = new ArrayList<FemElement>();
+	private ArrayList<InsaneElement> elements = new ArrayList<InsaneElement>();
 	private ArrayList<Region> physicalNames = new ArrayList<Region>();
 	private ArrayList<EntitySurface> entitySurfaces = new ArrayList<EntitySurface>();
 	private ArrayList<Restraint> restraint = new ArrayList<Restraint>();
@@ -96,7 +96,7 @@ public class Model {
 			int elmsInBlock = Integer.parseInt(splitBlock[3]);
 			for (int elmNumb = 0; elmNumb < elmsInBlock; elmNumb++) {
 				splitBlock = br.readLine().split(" ");
-				FemElement element = new FemElement();
+				InsaneElement element = new InsaneElement();
 				EntitySurface es = this.findEntitySurface(entityTag);
 				Region region = this.findRegion(es.getPhysicalTag());
 				element.setRegion(region);
@@ -190,11 +190,11 @@ public class Model {
 		this.nodes = nodes;
 	}
 
-	public ArrayList<FemElement> getElements() {
+	public ArrayList<InsaneElement> getElements() {
 		return elements;
 	}
 
-	public void setElements(ArrayList<FemElement> elements) {
+	public void setElements(ArrayList<InsaneElement> elements) {
 		this.elements = elements;
 	}
 	

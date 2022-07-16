@@ -14,11 +14,12 @@ public class List {
 	private ArrayList<MasterDofs> masterDofs = new ArrayList<MasterDofs>();
 	
 	public List(){
+		double size = 75.0;
 		restraint.add(new XDirectionRestraint(0.0, "true false true"));
-		restraint.add(new XYDirectionRestraint(0, 35, "true true true"));
-		restraint.add(new XYDirectionRestraint(70, 70, "false false true"));
+		restraint.add(new XYDirectionRestraint(0, size/2, "true true true"));
+		restraint.add(new XYDirectionRestraint(size, size, "false false true"));
 				
-		masterDofs.add(new XDirectionMasterDofs(70.0, new Node(70.0, 70.0, 0.0), 1));
+		masterDofs.add(new XDirectionMasterDofs(size, new Node(size, size, 0.0), 1));
 	}
 	
 	

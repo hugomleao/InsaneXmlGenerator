@@ -2,17 +2,17 @@ package model;
 
 import java.util.ArrayList;
 
-public class FemElement {
+public class InsaneElement {
 	
 	private ArrayList <Node> nodes = new ArrayList<Node>();
 	private Region region;
 	private int id;
 	
-	public FemElement() {
+	public InsaneElement() {
 		
 	}
 	
-	public FemElement (int id, Region region, ArrayList<Node> nodes) {
+	public InsaneElement (int id, Region region, ArrayList<Node> nodes) {
 		this.id = id;
 		this.region = region;
 		this.nodes = nodes;

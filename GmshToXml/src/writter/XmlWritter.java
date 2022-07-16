@@ -1,13 +1,27 @@
 package writter;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
-import javax.xml.stream.XMLOutputFactory;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import model.FemElement;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import model.InsaneElement;
 import model.Model;
 import model.Node;
 
@@ -18,281 +32,128 @@ public class XmlWritter {
 	public static final String SPACE = "    ";
 
 	
-	public void writeXml(Model model, String path) {
-		File outputFile = new File(path);
-		XMLOutputFactory xmlOutputFacotory = XMLOutputFactory.newInstance();
-		try {
+	public void writeXml(Model model, String path) {		
+        try {
+        	DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+			Document doc = docBuilder.newDocument();
+			doc.setXmlVersion("1.1");
+			doc.setXmlStandalone(true);
 			
+			Element insaneSchema = doc.createElement("Insane");
+			insaneSchema.setAttribute("xmlns", "http://www.dees.ufmg.br");
+			insaneSchema.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+			insaneSchema.setAttribute("xsi:schemaLocation", "http://www.dees.ufmg.br insane.xsd");
+			doc.appendChild(insaneSchema);
 			
-			XMLStreamWriter xmlw = xmlOutputFacotory.createXMLStreamWriter(new FileOutputStream(outputFile));
-			xmlw.writeStartDocument();
-			xmlw.writeCharacters(NEW_LINE);
+			insaneSchema.appendChild(this.getXmlModel(doc, model));
+			
+	        
+	        
+			FileOutputStream output = new FileOutputStream(path);
+			
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+	        Transformer transformer = transformerFactory.newTransformer();
+	        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+	        DOMSource source = new DOMSource(doc);
+	        StreamResult result = new StreamResult(output);
 
-			//The root element
-			xmlw.writeStartElement("root");
-			xmlw.writeCharacters(NEW_LINE);
-			xmlw.writeCharacters(NEW_LINE);
-			
-			
-			this.writeNodes(xmlw, model);
-			this.writeElements(xmlw, model);
+	        transformer.transform(source, result);
 			
 			
 			
-			//End root element
-			xmlw.writeEndElement();
-
-			// End the XML document
-			xmlw.writeEndDocument();
-
-			// Close the XMLStreamWriter to free up resources
-			xmlw.close();
-			
-			
+		} catch (ParserConfigurationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (XMLStreamException e) {
+		} catch (TransformerConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 	}
 	
-	private void writeNodeCoords(XMLStreamWriter xmlw, Node node) throws XMLStreamException {
-		//Writing the node coords
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeStartElement("Coord");
-		xmlw.writeCharacters(node.getCoords());
-		//End the node coords
-		xmlw.writeEndElement();
-		xmlw.writeCharacters(NEW_LINE);
+	private Element getXmlModel(Document doc, Model model) {
+		Element elmModel = doc.createElement("Model");
+		elmModel.setAttribute("class", "FemModel");
+		elmModel.appendChild(this.getXmlNodesList(doc, model));
+		elmModel.appendChild(this.getXmlElementsList(doc, model));
+		return elmModel;
 	}
 	
-	private void writeNodeValues(XMLStreamWriter xmlw, Node node) throws XMLStreamException {
-		//Writing node values
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeStartElement("NodeValues");
-		xmlw.writeCharacters(NEW_LINE);
-		
-		this.writeNodeDOFLabels(xmlw, node);
-		this.writeNodeRestraints(xmlw, node);
-		this.writeNodeMasterDofs(xmlw, node);
-		this.writeNodeStiffness(xmlw, node);
-		this.writeNodePreDisplacements(xmlw, node);
-		
-		//End of node values
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeEndElement();
-		xmlw.writeCharacters(NEW_LINE);
+	private Element getXmlNode(Document doc, Node node) {
+		Element elmNode = doc.createElement("Node");
+		elmNode.setAttribute("label", node.getId());
+		Element coords = doc.createElement("Coord");
+		coords.setTextContent(node.getCoords());
+		elmNode.appendChild(coords);
+		Element nodeValues = doc.createElement("NodeValues");
+		Element Dofs = doc.createElement("DOFLabels");
+		Dofs.setTextContent("Dx Dy PF");
+		nodeValues.appendChild(Dofs);
+		Element restraints = doc.createElement("Restraints");
+		restraints.setTextContent(node.getRestraints());
+		nodeValues.appendChild(restraints);
+		Element masterDofs = doc.createElement("MasterDOFs");
+		masterDofs.setTextContent(node.getMasterDofs());
+		nodeValues.appendChild(masterDofs);
+		Element stiffness = doc.createElement("Stiffness");
+		stiffness.setTextContent("0.0 0.0 0.0");
+		nodeValues.appendChild(stiffness);
+		Element preDisp = doc.createElement("PreDisplacements");
+		preDisp.setTextContent("0.0 0.0 0.0");
+		nodeValues.appendChild(preDisp);
+		elmNode.appendChild(nodeValues);
+		return elmNode;
 	}
 	
-	private void writeNodeDOFLabels(XMLStreamWriter xmlw, Node node) throws XMLStreamException {
-		//Writing the DOFLabels
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeStartElement("DOFLabels");
-		xmlw.writeCharacters("Dx Dy PF");
-	//End the node DOFLabels
-		xmlw.writeEndElement();
-		xmlw.writeCharacters(NEW_LINE);
-	}
-	
-	private void writeNodeRestraints(XMLStreamWriter xmlw, Node node) throws XMLStreamException {
-		//Writing the Restraints
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeStartElement("Restraints");
-		xmlw.writeCharacters(node.getRestraints());
-		//End the node Restraints
-		xmlw.writeEndElement();
-		xmlw.writeCharacters(NEW_LINE);
-	}
-	
-	private void writeNodeMasterDofs(XMLStreamWriter xmlw, Node node) throws XMLStreamException {
-		//Writing the MasterDofs
-		if (node.getMasterDofs() != null) {
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeStartElement("MasterDOFs");
-			xmlw.writeCharacters(node.getMasterDofs());
-			//End the node MasterDofs
-			xmlw.writeEndElement();
-			xmlw.writeCharacters(NEW_LINE);
-		}
-	}
-	
-	private void writeNodeStiffness(XMLStreamWriter xmlw, Node node) throws XMLStreamException {
-		//Writing the Stiffness
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeStartElement("Stiffness");
-		xmlw.writeCharacters("0.0 0.0 0.0");
-		//End the node Stiffness
-		xmlw.writeEndElement();
-		xmlw.writeCharacters(NEW_LINE);
-	}
-	
-	private void writeNodePreDisplacements(XMLStreamWriter xmlw, Node node) throws XMLStreamException {
-		//Writing the PreDisplacements
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeStartElement("PreDisplacements");
-		xmlw.writeCharacters("0.0 0.0 0.0");
-		//End the node PreDisplacements
-		xmlw.writeEndElement();
-		xmlw.writeCharacters(NEW_LINE);
-	}
-	
-	private void writeNode(XMLStreamWriter xmlw, Node node) throws XMLStreamException {
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		//Writing the node label
-			xmlw.writeStartElement("Node");
-			xmlw.writeAttribute("label", node.getId());
-			xmlw.writeCharacters(NEW_LINE);
-		
-			this.writeNodeCoords(xmlw, node);
-			this.writeNodeValues(xmlw, node);
-			
-			
-		//End of node
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeEndElement();
-			xmlw.writeCharacters(NEW_LINE);
-	}
-	
-	private void writeNodes(XMLStreamWriter xmlw, Model model) throws XMLStreamException {
-		//Writing nodes list
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeStartElement("NodeList");
-		xmlw.writeCharacters(NEW_LINE);
+	private Element getXmlNodesList(Document doc, Model model) {
+		Element nodeList = doc.createElement("NodeList");
 		Iterator<Node> ite = model.getNodes().iterator();
 		while (ite.hasNext()) {
 			Node node = ite.next();
-			this.writeNode(xmlw, node);
+			nodeList.appendChild(this.getXmlNode(doc, node));
 		}
-		//End of node List
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeEndElement();
-		xmlw.writeCharacters(NEW_LINE);
-		
+		return nodeList;
 	}
 	
-	private void writeElements(XMLStreamWriter xmlw, Model model) throws XMLStreamException {
-		//Writing elements list
-				xmlw.writeCharacters(SPACE);
-				xmlw.writeCharacters(SPACE);
-				xmlw.writeStartElement("ElementList");
-				xmlw.writeCharacters(NEW_LINE);
-				Iterator<FemElement> ite = model.getElements().iterator();
-				while (ite.hasNext()) {
-					FemElement element = ite.next();
-					this.writeElement(xmlw, element);
-				}
-				//End of element List
-				xmlw.writeCharacters(SPACE);
-				xmlw.writeCharacters(SPACE);
-				xmlw.writeEndElement();
-				xmlw.writeCharacters(NEW_LINE);
+	private Element getXmlElement(Document doc, InsaneElement element) {
+		Element xmlElm = doc.createElement("Element");
+		xmlElm.setAttribute("class", "ParametricElement.Triangular.T3");
+		xmlElm.setAttribute("label", String.valueOf(element.getId()));
+		Element incidence = doc.createElement("Incidence");
+		incidence.setTextContent(element.getIncidence());
+		xmlElm.appendChild(incidence);
+		Element am = doc.createElement("AnalysisModel");
+		am.setTextContent("PlaneStressPhaseFieldStaggeredSolver");
+		xmlElm.appendChild(am);
+		Element io = doc.createElement("IntegrationOrder");
+		io.setTextContent("1 0 0");
+		xmlElm.appendChild(io);
+		Element cm = doc.createElement("ConstitutiveModel");
+		cm.setTextContent("StgPfIsotropicConstModel");
+		xmlElm.appendChild(cm);
+		Element deg = doc.createElement("ElmDegenerations");
+		deg.setTextContent(element.getRegion().getLabel());
+		xmlElm.appendChild(deg);
+		return xmlElm;
 	}
-
-	private void writeElement(XMLStreamWriter xmlw, FemElement element) throws XMLStreamException {
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		xmlw.writeCharacters(SPACE);
-		//Writing the element class and label
-			xmlw.writeStartElement("Element");
-			xmlw.writeAttribute("class", "ParametricElement.Triangular.T3");
-			xmlw.writeAttribute("label", String.valueOf(element.getId()));
-			xmlw.writeCharacters(NEW_LINE);
-		//Writing the element incidence
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeStartElement("Incidence");
-			xmlw.writeCharacters(element.getIncidence());
-		//End the element incidence
-			xmlw.writeEndElement();
-			xmlw.writeCharacters(NEW_LINE);
-		//Writing the element analysis model
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeStartElement("AnalysisModel");
-			xmlw.writeCharacters("PlaneStressPhaseFieldStaggeredSolver");
-		//End the element analysis model
-			xmlw.writeEndElement();
-			xmlw.writeCharacters(NEW_LINE);
-		//Writing the element integration order
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeStartElement("IntegrationOrder");
-			xmlw.writeCharacters("1 0 0");
-		//End the element integration order
-			xmlw.writeEndElement();
-			xmlw.writeCharacters(NEW_LINE);
-		//Writing the element constitutive model
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeStartElement("ConstitutiveModel");
-			xmlw.writeCharacters("StgPfIsotropicConstModel");
-		//End the element constitutive model
-			xmlw.writeEndElement();
-			xmlw.writeCharacters(NEW_LINE);
-		//Writing the element section
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeStartElement("ElmDegenerations");
-			xmlw.writeCharacters(String.valueOf(element.getRegion().getLabel()));
-		//End the element section
-			xmlw.writeEndElement();
-			xmlw.writeCharacters(NEW_LINE);
-		//End of element
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeCharacters(SPACE);
-			xmlw.writeEndElement();
-			xmlw.writeCharacters(NEW_LINE);
-		
+	
+	private Element getXmlElementsList(Document doc, Model model) {
+		Element elmList = doc.createElement("ElementList");
+		Iterator<InsaneElement> ite = model.getElements().iterator();
+		while (ite.hasNext()) {
+			InsaneElement element = ite.next();
+			elmList.appendChild(this.getXmlElement(doc, element));
+		}
+		return elmList;
 	}
+	
 
 	
 	}
