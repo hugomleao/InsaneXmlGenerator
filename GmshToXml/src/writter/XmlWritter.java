@@ -27,10 +27,6 @@ import model.Node;
 
 public class XmlWritter {
 	
-	public static final String NEW_LINE = "\n";
-
-	public static final String SPACE = "    ";
-
 	
 	public void writeXml(Model model, String path) {		
         try {
@@ -99,15 +95,11 @@ public class XmlWritter {
 		Element restraints = doc.createElement("Restraints");
 		restraints.setTextContent(node.getRestraints());
 		nodeValues.appendChild(restraints);
-		Element masterDofs = doc.createElement("MasterDOFs");
-		masterDofs.setTextContent(node.getMasterDofs());
-		nodeValues.appendChild(masterDofs);
-		Element stiffness = doc.createElement("Stiffness");
-		stiffness.setTextContent("0.0 0.0 0.0");
-		nodeValues.appendChild(stiffness);
-		Element preDisp = doc.createElement("PreDisplacements");
-		preDisp.setTextContent("0.0 0.0 0.0");
-		nodeValues.appendChild(preDisp);
+		if (node.getMasterDofs() != null) {
+			Element masterDofs = doc.createElement("MasterDOFs");
+			masterDofs.setTextContent(node.getMasterDofs());
+			nodeValues.appendChild(masterDofs);
+		}
 		elmNode.appendChild(nodeValues);
 		return elmNode;
 	}

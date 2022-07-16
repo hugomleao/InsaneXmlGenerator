@@ -32,7 +32,6 @@ public class Node {
 		this.y = y;
 		this.z = z;
 		this.restraints = "false false false";
-		this.masterDofs = "false false false";
 	}
 	
 	public Node(double x, double y, double z) {
