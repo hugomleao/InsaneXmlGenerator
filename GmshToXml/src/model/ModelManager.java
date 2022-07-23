@@ -1,11 +1,19 @@
 package model;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 import model.gmsh.Entity;
 import model.gmsh.GmshCurve;
@@ -28,7 +36,7 @@ public class ModelManager {
 	private GmshModel gmshModel;
 	private InsaneModel insaneModel;
 	private HashMap<Integer, Integer> nodeLabelInInsane = new HashMap<Integer, Integer>();
-	
+
 	public ModelManager(String filePath) {
 		this.filePath = filePath;
 	}
@@ -51,6 +59,7 @@ public class ModelManager {
 
 	public void fillInsaneModel(ConstitutiveModel constitutiveModel, AnalysisModel analysisModel) {
 		insaneModel = new InsaneModel();
+		this.fillConstitutiveAndAnalysisModel();
 		insaneModel.setAnalysisModel(analysisModel);
 		insaneModel.setConstitutiveModel(constitutiveModel);
 		fillInsaneNodeList();
@@ -327,7 +336,7 @@ public class ModelManager {
 				if (!gmshElm.getEntity().getElementType().getInsaneElement().isEmpty()) {
 					int elementLabel = insaneModel.getElementList().size() + 1;
 					InsaneElement insaneElm = new InsaneElement(elementLabel, gmshElm,
-							insaneModel.getConstitutiveModel(),insaneModel.getAnalysisModel());
+							insaneModel.getConstitutiveModel(), insaneModel.getAnalysisModel());
 					setElementIncidence(insaneElm, gmshElm);
 					insaneModel.getElementList().add(insaneElm);
 				}
@@ -337,22 +346,40 @@ public class ModelManager {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void setElementIncidence(InsaneElement insaneElement, GmshElement gmshElement) {
-	GmshNode[] gmshIncidence = gmshElement.getNodes();
-	InsaneNode[] insaneIncidence = new InsaneNode[gmshIncidence.length];
-	for(int i = 0 ; i < insaneIncidence.length; i++) {
-		int gmshIncidenceTag = gmshIncidence[i].getTag();
-		int insaneIncidenceTag = getInsaneNodeLabel(gmshIncidenceTag);
-		insaneIncidence[i] = insaneModel.getNodeList().get(insaneIncidenceTag - 1);
+		GmshNode[] gmshIncidence = gmshElement.getNodes();
+		InsaneNode[] insaneIncidence = new InsaneNode[gmshIncidence.length];
+		for (int i = 0; i < insaneIncidence.length; i++) {
+			int gmshIncidenceTag = gmshIncidence[i].getTag();
+			int insaneIncidenceTag = getInsaneNodeLabel(gmshIncidenceTag);
+			insaneIncidence[i] = insaneModel.getNodeList().get(insaneIncidenceTag - 1);
+		}
+		insaneElement.setIncidence(insaneIncidence);
 	}
-	insaneElement.setIncidence(insaneIncidence);
-}
+	
+	private void fillConstitutiveAndAnalysisModel() {
+		try {
+			
+		String xmlPartFile = this.filePath.replace(".msh", ".xmlpart");
+		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder docBuilder;
+		docBuilder = docFactory.newDocumentBuilder();
+		Document part = docBuilder.parse(new File(xmlPartFile));
+		String amLabel = part.getElementsByTagName("GlobalAnalysisModel").item(0).getTextContent();
+		this.insaneModel.setAnalysisModel(AnalysisModel.BY_INSANE_NAME.get(amLabel));
+		String cmLabel = part.getElementsByTagName("GlobalConstitutiveModel").item(0).getTextContent();
+		this.insaneModel.setConstitutiveModel(ConstitutiveModel.BY_INSANE_NAME.get(cmLabel));
+		
+		} catch (ParserConfigurationException | SAXException | IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	private void fillNodesMap(int insaneLabel, int gmshTag) {
 		this.nodeLabelInInsane.put(gmshTag, insaneLabel);
 	}
-	
+
 	private int getInsaneNodeLabel(int gmshLabel) {
 		return this.nodeLabelInInsane.get(gmshLabel);
 	}
@@ -364,7 +391,5 @@ public class ModelManager {
 	public InsaneModel getInsaneModel() {
 		return insaneModel;
 	}
-	
-	
 
 }
