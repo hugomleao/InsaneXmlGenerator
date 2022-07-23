@@ -1,9 +1,14 @@
 package writter;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.Iterator;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -32,12 +37,8 @@ public class XmlWritter {
 		try {
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-			//
-			//
 			String xmlPartFile = path.replace(".xml", ".xmlpart");
 			Document part = docBuilder.parse(new File(xmlPartFile));
-			//
-			//
 			Document doc = docBuilder.newDocument();
 			doc.setXmlVersion("1.1");
 			doc.setXmlStandalone(true);
@@ -56,15 +57,30 @@ public class XmlWritter {
 			this.setFromSourceToDestination(part, doc, "ScalarFunctions");
 			this.setFromSourceToDestination(part, doc, "LoadCombinations");
 
-			FileOutputStream output = new FileOutputStream(path);
 
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
 			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			DOMSource source = new DOMSource(doc);
-			StreamResult result = new StreamResult(output);
 
-			transformer.transform(source, result);
+			StringWriter writer = new StringWriter();
+			transformer.transform(source, new StreamResult(writer));
+			String string = writer.toString();
+			
+			File fout = new File(path);
+			FileOutputStream fos = new FileOutputStream(fout);
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+			
+			BufferedReader reader = new BufferedReader(new StringReader(string));
+			String str;
+			while((str=reader.readLine())!=null && str.length() != 0) {
+				if (str.trim().length() > 0) {
+					bw.write(str + "\n");
+				}
+			}
+			
+			bw.close();
+			fos.close();
 
 		} catch (ParserConfigurationException e1) {
 			e1.printStackTrace();
