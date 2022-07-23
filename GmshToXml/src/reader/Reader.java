@@ -8,10 +8,10 @@ import java.io.IOException;
 import javax.swing.JFileChooser;
 
 public class Reader {
-	
+
 	public static String outputFilePath;
 	private static JFileChooser fileChooser = new JFileChooser();
-	
+
 	public static String readFile() {
 		fileChooser = new JFileChooser();
 		fileChooser.requestFocus();
@@ -21,7 +21,7 @@ public class Reader {
 		if (retVal == JFileChooser.APPROVE_OPTION) {
 			// Getting the file name
 			String s = fileChooser.getSelectedFile().getName();
-			
+
 			// Getting the file extension
 			String ext = new String();
 			int i = s.lastIndexOf('.');
@@ -45,12 +45,17 @@ public class Reader {
 		fileChooser.setVisible(false);
 		return path;
 	}
-	
-	public static void findLineThatStartsWith(BufferedReader br, String string) throws Exception {
-		String line = "";
-		do {
-			line = br.readLine().trim();
-		} while (!line.equals(string));
-		
+
+	public static void findLineThatStartsWith(BufferedReader br, String string) {
+		try {
+			
+			String line = "";
+			do {
+				line = br.readLine().trim();
+			} while (!line.equals(string));
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

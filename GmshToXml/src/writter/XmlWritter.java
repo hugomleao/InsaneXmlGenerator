@@ -2,14 +2,11 @@ package writter;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -21,14 +18,15 @@ import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import model.InsaneElement;
-import model.Model;
-import model.Node;
+import model.insane.InsaneElement;
+import model.insane.InsaneModel;
+import model.insane.InsaneNode;
+
 
 public class XmlWritter {
 	
 	
-	public void writeXml(Model model, String path) {		
+	public void writeXml(InsaneModel model, String path) {		
         try {
         	DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -74,7 +72,7 @@ public class XmlWritter {
 		
 	}
 	
-	private Element getXmlModel(Document doc, Model model) {
+	private Element getXmlModel(Document doc, InsaneModel model) {
 		Element elmModel = doc.createElement("Model");
 		elmModel.setAttribute("class", "FemModel");
 		elmModel.appendChild(this.getXmlNodesList(doc, model));
@@ -82,15 +80,15 @@ public class XmlWritter {
 		return elmModel;
 	}
 	
-	private Element getXmlNode(Document doc, Node node) {
+	private Element getXmlNode(Document doc, InsaneNode node) {
 		Element elmNode = doc.createElement("Node");
-		elmNode.setAttribute("label", node.getId());
+		elmNode.setAttribute("label", node.getXmlLabel());
 		Element coords = doc.createElement("Coord");
-		coords.setTextContent(node.getCoords());
+		coords.setTextContent(node.getXmlCoords());
 		elmNode.appendChild(coords);
 		Element nodeValues = doc.createElement("NodeValues");
 		Element Dofs = doc.createElement("DOFLabels");
-		Dofs.setTextContent("Dx Dy PF");
+		Dofs.setTextContent(node.getDOFLabels());
 		nodeValues.appendChild(Dofs);
 		Element restraints = doc.createElement("Restraints");
 		restraints.setTextContent(node.getRestraints());
@@ -104,11 +102,11 @@ public class XmlWritter {
 		return elmNode;
 	}
 	
-	private Element getXmlNodesList(Document doc, Model model) {
+	private Element getXmlNodesList(Document doc, InsaneModel model) {
 		Element nodeList = doc.createElement("NodeList");
-		Iterator<Node> ite = model.getNodes().iterator();
+		Iterator<InsaneNode> ite = model.getNodeList().iterator();
 		while (ite.hasNext()) {
-			Node node = ite.next();
+			InsaneNode node = ite.next();
 			nodeList.appendChild(this.getXmlNode(doc, node));
 		}
 		return nodeList;
@@ -116,29 +114,29 @@ public class XmlWritter {
 	
 	private Element getXmlElement(Document doc, InsaneElement element) {
 		Element xmlElm = doc.createElement("Element");
-		xmlElm.setAttribute("class", "ParametricElement.Triangular.T3");
-		xmlElm.setAttribute("label", String.valueOf(element.getId()));
+		xmlElm.setAttribute("class", element.getInsaneClass());
+		xmlElm.setAttribute("label", element.getInsaneLabel());
 		Element incidence = doc.createElement("Incidence");
-		incidence.setTextContent(element.getIncidence());
+		incidence.setTextContent(element.getInsaneIncidence());
 		xmlElm.appendChild(incidence);
 		Element am = doc.createElement("AnalysisModel");
-		am.setTextContent("PlaneStressPhaseFieldStaggeredSolver");
+		am.setTextContent(element.getInsaneAnalysisModel());
 		xmlElm.appendChild(am);
 		Element io = doc.createElement("IntegrationOrder");
-		io.setTextContent("1 0 0");
+		io.setTextContent(element.getIntegrationOrder());
 		xmlElm.appendChild(io);
 		Element cm = doc.createElement("ConstitutiveModel");
-		cm.setTextContent("StgPfIsotropicConstModel");
+		cm.setTextContent(element.getInsaneConstitutiveModel());
 		xmlElm.appendChild(cm);
 		Element deg = doc.createElement("ElmDegenerations");
-		deg.setTextContent(element.getRegion().getLabel());
+		deg.setTextContent(element.getDegeneration());
 		xmlElm.appendChild(deg);
 		return xmlElm;
 	}
 	
-	private Element getXmlElementsList(Document doc, Model model) {
+	private Element getXmlElementsList(Document doc, InsaneModel model) {
 		Element elmList = doc.createElement("ElementList");
-		Iterator<InsaneElement> ite = model.getElements().iterator();
+		Iterator<InsaneElement> ite = model.getElementList().iterator();
 		while (ite.hasNext()) {
 			InsaneElement element = ite.next();
 			elmList.appendChild(this.getXmlElement(doc, element));

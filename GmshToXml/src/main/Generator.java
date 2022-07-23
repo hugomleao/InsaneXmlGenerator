@@ -1,23 +1,21 @@
 package main;
 
-import model.Model;
-import reader.Reader;
+import model.ModelManager;
+import model.insane.AnalysisModel;
+import model.insane.ConstitutiveModel;
 import writter.XmlWritter;
 
 public class Generator {
 
 	public static void main(String[] args) throws Exception {
-		Model model = new Model();
-		model.fillModel();
 		
-		List list = new List();
-		model.setMasterDofs(list.getMasterDofs());
-		model.setRestraint(list.getRestraint());
-		model.putRestraints();
-		model.putMasterDofs();
+		ModelManager manager = new ModelManager("C:\\Users\\hugom\\Desktop\\Mesh.msh");
+		manager.fillGmshModel();
+		manager.fillInsaneModel(ConstitutiveModel.STG_PF_ISOTROPIC_CONST_MODEL, AnalysisModel.PLANE_STRESS_PHASE_FIELD_STAGGERED_SOLVER);
 		
+
 		XmlWritter writter = new XmlWritter();
-		writter.writeXml(model, Reader.outputFilePath);
+		writter.writeXml(manager.getInsaneModel(), "C:\\Users\\hugom\\Desktop\\Mesh.xml");
 
 	}
 
