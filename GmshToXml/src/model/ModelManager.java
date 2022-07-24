@@ -77,14 +77,13 @@ public class ModelManager {
 			Reader.findLineThatStartsWith(br, "$PhysicalNames");
 			int numPhysicalNames;
 			numPhysicalNames = Integer.parseInt(br.readLine());
-			gmshModel.setPhysicalNames(new PhysicalName[numPhysicalNames]);
 			for (int i = 0; i < numPhysicalNames; i++) {
 				String[] split = br.readLine().split(" ", 3);
 				int dimension = Integer.parseInt(split[0]);
 				int physicalTag = Integer.parseInt(split[1]);
 				String name = split[2].replace("\"", "");
 				PhysicalName pn = new PhysicalName(dimension, physicalTag, name);
-				gmshModel.setPhysicalName(physicalTag - 1, pn);
+				gmshModel.setPhysicalNameByTag(physicalTag, pn);
 			}
 
 		} catch (NumberFormatException | IOException e) {
@@ -136,7 +135,7 @@ public class ModelManager {
 				PhysicalName[] pn = new PhysicalName[Integer.parseInt(split[4])];
 				for (int j = 0; j < pn.length; j++) {
 					int physicalTag = Integer.parseInt(split[5 + j]);
-					pn[j] = gmshModel.getPhysicalName(physicalTag - 1);
+					pn[j] = gmshModel.getPhysicalNameByTag(physicalTag);
 				}
 				GmshPoint p = new GmshPoint(tag, x, y, z, pn);
 				gmshPoints[tag - 1] = p;
@@ -169,7 +168,7 @@ public class ModelManager {
 				PhysicalName[] pn = new PhysicalName[Integer.parseInt(split[7])];
 				for (int j = 0; j < pn.length; j++) {
 					int physicalTag = Integer.parseInt(split[8 + j]);
-					pn[j] = gmshModel.getPhysicalName(physicalTag - 1);
+					pn[j] = gmshModel.getPhysicalNameByTag(physicalTag);
 				}
 				GmshPoint[] p = new GmshPoint[Integer.parseInt(split[8 + pn.length])];
 				for (int j = 0; j < p.length; j++) {
@@ -206,7 +205,7 @@ public class ModelManager {
 				PhysicalName[] pn = new PhysicalName[Integer.parseInt(split[7])];
 				for (int j = 0; j < pn.length; j++) {
 					int physicalTag = Integer.parseInt(split[8 + j]);
-					pn[j] = gmshModel.getPhysicalName(physicalTag - 1);
+					pn[j] = gmshModel.getPhysicalNameByTag(physicalTag);
 				}
 				GmshCurve[] c = new GmshCurve[Integer.parseInt(split[8 + pn.length])];
 				for (int j = 0; j < c.length; j++) {

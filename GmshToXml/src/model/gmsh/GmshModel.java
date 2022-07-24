@@ -1,8 +1,10 @@
 package model.gmsh;
 
+import java.util.HashMap;
+
 public class GmshModel {
 
-	private PhysicalName[] physicalNames;
+	private HashMap<Integer, PhysicalName> physicalNames = new HashMap<>();
 
 	// Entities
 	private GmshPoint[] points;
@@ -38,13 +40,9 @@ public class GmshModel {
 		}
 		return entities[entityTag - 1];
 	}
-
-	/**
-	 * 
-	 * @return The GmeshModel Physical Names.
-	 */
-	public PhysicalName[] getPhysicalNames() {
-		return physicalNames;
+	
+	public PhysicalName getPhysicalNameByTag(int tag) {
+		return this.physicalNames.get(tag);
 	}
 
 	/**
@@ -52,29 +50,10 @@ public class GmshModel {
 	 * 
 	 * @param physicalNames
 	 */
-	public void setPhysicalNames(PhysicalName[] physicalNames) {
-		this.physicalNames = physicalNames;
+	public void setPhysicalNameByTag(int tag, PhysicalName physicalName) {
+		this.physicalNames.put(tag, physicalName);
 	}
 	
-	/**
-	 * Gets the PhysicalName object.
-	 * @param index The index of the object.
-	 * @return PhysicalName.
-	 */
-	public PhysicalName getPhysicalName(int index) {
-		return this.physicalNames[index];
-	}
-
-	/**
-	 * Sets the physical name object in a specified position.
-	 * 
-	 * @param index        Position to be set.
-	 * @param physicalName The physicalName object.
-	 */
-	public void setPhysicalName(int index, PhysicalName physicalName) {
-		this.physicalNames[index] = physicalName;
-	}
-
 	/**
 	 * 
 	 * @return List of Nodes from GmshModel.
