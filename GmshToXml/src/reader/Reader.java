@@ -9,7 +9,6 @@ import javax.swing.JFileChooser;
 
 public class Reader {
 
-	public static String outputFilePath;
 	private static JFileChooser fileChooser = new JFileChooser();
 
 	public static String readFile() {
@@ -29,8 +28,8 @@ public class Reader {
 				ext = s.substring(i + 1).toLowerCase();
 			}
 			// Comparing the extension
-			if (!ext.equals("msh")) {
-				s = s + ".msh";
+			if (!ext.equals("geo")) {
+				s = s + ".geo";
 				File file = fileChooser.getSelectedFile();
 				// Changing the file in case of no good extensions
 				fileChooser.setSelectedFile(new File(file.getParent() + File.separator + s));
@@ -41,7 +40,6 @@ public class Reader {
 			path = fileChooser.getSelectedFile().getAbsolutePath();
 		}
 		int i = path.lastIndexOf('.');
-		Reader.outputFilePath = path.substring(0, i) + ".xml";
 		fileChooser.setVisible(false);
 		return path;
 	}

@@ -32,19 +32,36 @@ import model.insane.InsaneNode;
 import reader.Reader;
 
 public class ModelManager {
-	private String filePath;
+	private String geoFilePath;
+	private String mshFilePath;
+	private String infoFilePath;
+	
 	private GmshModel gmshModel;
 	private InsaneModel insaneModel;
 	private HashMap<Integer, Integer> nodeLabelInInsane = new HashMap<Integer, Integer>();
 
-	public ModelManager(String filePath) {
-		this.filePath = filePath;
+	public ModelManager(String geoFilePath) {
+		this.geoFilePath = geoFilePath;
+		this.mshFilePath = geoFilePath.replace(".geo", ".msh");
+		this.infoFilePath = geoFilePath.replace(".geo", ".xml-info");
+		
+	}
+	
+	public void createMshFile() {
+	    try {
+	    	ProcessBuilder processBuilder = new ProcessBuilder();
+			processBuilder.command("cmd", "/c", "gmsh C:\\Users\\hugom\\Desktop\\Mesh.geo -2");
+			Process process = processBuilder.start();
+			process.waitFor();
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void fillGmshModel() {
 		try {
 			gmshModel = new GmshModel();
-			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath)));
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(mshFilePath)));
 			this.fillGmshPhysicalNames(bufferedReader);
 			this.fillGmshEntities(bufferedReader);
 			this.fillGmshNodes(bufferedReader);
@@ -360,11 +377,10 @@ public class ModelManager {
 	private void fillConstitutiveAndAnalysisModel() {
 		try {
 			
-		String xmlPartFile = this.filePath.replace(".msh", ".xmlpart");
 		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder docBuilder;
 		docBuilder = docFactory.newDocumentBuilder();
-		Document part = docBuilder.parse(new File(xmlPartFile));
+		Document part = docBuilder.parse(new File(infoFilePath));
 		String amLabel = part.getElementsByTagName("GlobalAnalysisModel").item(0).getTextContent();
 		this.insaneModel.setAnalysisModel(AnalysisModel.BY_INSANE_NAME.get(amLabel));
 		String cmLabel = part.getElementsByTagName("GlobalConstitutiveModel").item(0).getTextContent();
@@ -383,12 +399,26 @@ public class ModelManager {
 		return this.nodeLabelInInsane.get(gmshLabel);
 	}
 
-	public String getFilePath() {
-		return filePath;
-	}
-
 	public InsaneModel getInsaneModel() {
 		return insaneModel;
 	}
+
+	public String getGeoFilePath() {
+		return geoFilePath;
+	}
+
+	public String getInfoFilePath() {
+		return infoFilePath;
+	}
+	
+	public String getMshFilePath() {
+		return mshFilePath;
+	}
+
+	public GmshModel getGmshModel() {
+		return gmshModel;
+	}
+	
+	
 
 }

@@ -32,13 +32,20 @@ import model.insane.InsaneModel;
 import model.insane.InsaneNode;
 
 public class XmlWritter {
+	
+	private String xmlFilePath;
+	private String infoFilePath;
+	
+	public XmlWritter(String infoFilePath) {
+		this.infoFilePath = infoFilePath;
+		this.xmlFilePath = infoFilePath.replace(".xml-info", ".xml");
+	}
 
-	public void writeXml(InsaneModel model, String path) {
+	public void writeXml(InsaneModel model) {
 		try {
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-			String xmlPartFile = path.replace(".xml", ".xmlpart");
-			Document part = docBuilder.parse(new File(xmlPartFile));
+			Document part = docBuilder.parse(new File(infoFilePath));
 			Document doc = docBuilder.newDocument();
 			doc.setXmlVersion("1.1");
 			doc.setXmlStandalone(true);
@@ -67,7 +74,7 @@ public class XmlWritter {
 			transformer.transform(source, new StreamResult(writer));
 			String string = writer.toString();
 			
-			File fout = new File(path);
+			File fout = new File(xmlFilePath);
 			FileOutputStream fos = new FileOutputStream(fout);
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
 			
