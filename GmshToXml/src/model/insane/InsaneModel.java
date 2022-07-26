@@ -5,6 +5,8 @@ import java.util.ArrayList;
 public class InsaneModel {
 	private ArrayList<InsaneNode> nodeList = new ArrayList<>();
 	private ArrayList<InsaneElement> elementList = new ArrayList<>();
+	private ArrayList<NodeLoad> loadList = new ArrayList<>();
+	private IterativeStrategy iterativeStrategy;
 	
 	private AnalysisModel analysisModel;
 	private ConstitutiveModel constitutiveModel;
@@ -45,6 +47,24 @@ public class InsaneModel {
 	public void setConstitutiveModel(ConstitutiveModel constitutiveModel) {
 		this.constitutiveModel = constitutiveModel;
 	}
+
+	public ArrayList<NodeLoad> getLoadList() {
+		return loadList;
+	}
+
+
+	public IterativeStrategy getIterativeStrategy() {
+		return iterativeStrategy;
+	}
+
+
+	public void setIterativeStrategy(IterativeStrategy iterativeStrategy) {
+		this.iterativeStrategy = iterativeStrategy;
+	}
+	
+	
+	
+	
 	
 	
 

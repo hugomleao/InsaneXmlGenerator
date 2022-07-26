@@ -39,7 +39,6 @@ public class Reader {
 		if (fileChooser.getSelectedFile() != null) {
 			path = fileChooser.getSelectedFile().getAbsolutePath();
 		}
-		int i = path.lastIndexOf('.');
 		fileChooser.setVisible(false);
 		return path;
 	}

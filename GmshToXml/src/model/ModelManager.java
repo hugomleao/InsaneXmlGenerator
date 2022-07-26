@@ -29,6 +29,8 @@ import model.insane.ConstitutiveModel;
 import model.insane.InsaneElement;
 import model.insane.InsaneModel;
 import model.insane.InsaneNode;
+import model.insane.IterativeStrategy;
+import model.insane.NodeLoad;
 import reader.Reader;
 
 public class ModelManager {
@@ -74,13 +76,13 @@ public class ModelManager {
 		}
 	}
 
-	public void fillInsaneModel(ConstitutiveModel constitutiveModel, AnalysisModel analysisModel) {
+	public void fillInsaneModel() {
 		insaneModel = new InsaneModel();
 		this.fillConstitutiveAndAnalysisModel();
-		insaneModel.setAnalysisModel(analysisModel);
-		insaneModel.setConstitutiveModel(constitutiveModel);
-		fillInsaneNodeList();
-		fillInsaneElementList();
+		this.fillInsaneNodeList();
+		this.fillInsaneElementList();
+		this.fillInsaneLoadList();
+		this.fillIterativeStrategy();
 	}
 
 	/**
@@ -378,8 +380,7 @@ public class ModelManager {
 		try {
 			
 		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder docBuilder;
-		docBuilder = docFactory.newDocumentBuilder();
+		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 		Document part = docBuilder.parse(new File(infoFilePath));
 		String amLabel = part.getElementsByTagName("GlobalAnalysisModel").item(0).getTextContent();
 		this.insaneModel.setAnalysisModel(AnalysisModel.BY_INSANE_NAME.get(amLabel));
@@ -388,6 +389,48 @@ public class ModelManager {
 		
 		} catch (ParserConfigurationException | SAXException | IOException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	private void fillInsaneLoadList() {
+		GmshPoint[] pointList = gmshModel.getPoints();
+		for (int i = 0; i < pointList.length; i++) {
+			GmshPoint point = pointList[i];
+			PhysicalName[] pn = point.getPhysicalNames();
+			for (int j = 0; j < pn.length; j++) {
+				String name = pn[j].getName();
+				boolean find = false;
+				if(name.startsWith(Dictionary.NODE_LOAD) && !find) {
+					find = true;
+					int initialIndex = name.indexOf(":");
+					String load = name.substring(initialIndex + 1).trim();
+					int insaneNodeLabel = this.getInsaneNodeLabel(point.getTag());
+					NodeLoad nodeLoad = new NodeLoad(load, this.insaneModel.getNodeList().get(insaneNodeLabel - 1));
+					this.insaneModel.getLoadList().add(nodeLoad);
+				}
+			}
+		}
+	}
+	
+	private void fillIterativeStrategy() {
+		GmshPoint[] pointList = gmshModel.getPoints();
+		for (int i = 0; i < pointList.length; i++) {
+			GmshPoint point = pointList[i];
+			PhysicalName[] pn = point.getPhysicalNames();
+			for (int j = 0; j < pn.length; j++) {
+				String name = pn[j].getName();
+				boolean find = false;
+				if(name.startsWith(Dictionary.NODE_CONTROL) && !find) {
+					find = true;
+					int initialIndex = name.indexOf(":");
+					String values = name.substring(initialIndex + 1).trim();
+					String split[] = values.split(" ");
+					int insaneNodeLabel = this.getInsaneNodeLabel(point.getTag());
+					InsaneNode insaneNode = this.insaneModel.getNodeList().get(insaneNodeLabel - 1);
+					IterativeStrategy is = new IterativeStrategy(split[0], insaneNode, Double.parseDouble(split[1]));
+					this.insaneModel.setIterativeStrategy(is);
+				}
+			}
 		}
 	}
 

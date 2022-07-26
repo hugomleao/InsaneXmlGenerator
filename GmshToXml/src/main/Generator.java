@@ -1,8 +1,6 @@
 package main;
 
 import model.ModelManager;
-import model.insane.AnalysisModel;
-import model.insane.ConstitutiveModel;
 import reader.Reader;
 import writter.XmlWritter;
 
@@ -16,10 +14,10 @@ public class Generator {
 		ModelManager manager = new ModelManager(inputFile);
 		manager.createMshFile();
 		manager.fillGmshModel();
-		manager.fillInsaneModel(ConstitutiveModel.STG_PF_ISOTROPIC_CONST_MODEL, AnalysisModel.PLANE_STRESS_PHASE_FIELD_STAGGERED_SOLVER);
+		manager.fillInsaneModel();
 		
-		XmlWritter writter = new XmlWritter(manager.getInfoFilePath());
-		writter.writeXml(manager.getInsaneModel());
+		XmlWritter writter = new XmlWritter(manager.getInfoFilePath(), manager.getInsaneModel());
+		writter.writeXml();
 
 	}
 

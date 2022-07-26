@@ -107,4 +107,8 @@ public class InsaneNode {
 		DOFLabels = dOFLabels;
 	}
 	
+	public String getLabelToString() {
+		return String.valueOf(label);
+	}
+	
 }

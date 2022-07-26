@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -30,18 +31,21 @@ import org.xml.sax.SAXException;
 import model.insane.InsaneElement;
 import model.insane.InsaneModel;
 import model.insane.InsaneNode;
+import model.insane.NodeLoad;
 
 public class XmlWritter {
 	
 	private String xmlFilePath;
 	private String infoFilePath;
+	private InsaneModel model;
 	
-	public XmlWritter(String infoFilePath) {
+	public XmlWritter(String infoFilePath, InsaneModel model) {
+		this.model = model;
 		this.infoFilePath = infoFilePath;
 		this.xmlFilePath = infoFilePath.replace(".xml-info", ".xml");
 	}
 
-	public void writeXml(InsaneModel model) {
+	public void writeXml() {
 		try {
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -58,11 +62,13 @@ public class XmlWritter {
 
 			this.setFromSourceToDestination(part, doc,"Solution");
 			this.setFromSourceToDestination(part, doc,"Model");
-			this.setNodesList(doc, model);
-			this.setElementsList(doc, model);
+			this.setIterativeStrategy(doc);
+			this.setNodesList(doc);
+			this.setElementsList(doc);
 			this.setFromSourceToDestination(part, doc, "LoadingList");
 			this.setFromSourceToDestination(part, doc, "ScalarFunctions");
 			this.setFromSourceToDestination(part, doc, "LoadCombinations");
+			this.fillLoading(doc);
 
 
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -112,14 +118,14 @@ public class XmlWritter {
 		insaneSchema.appendChild(solDest);
 	}
 	
-	private void setNodesList(Document doc, InsaneModel model) {
+	private void setNodesList(Document doc) {
 		Node xmlModel = doc.getElementsByTagName("Model").item(0);
-		xmlModel.appendChild(getXmlNodesList(doc, model));
+		xmlModel.appendChild(getXmlNodesList(doc));
 	}
 	
-	private void setElementsList(Document doc, InsaneModel model) {
+	private void setElementsList(Document doc) {
 		Node xmlModel = doc.getElementsByTagName("Model").item(0);
-		xmlModel.appendChild(getXmlElementsList(doc, model));
+		xmlModel.appendChild(getXmlElementsList(doc));
 	}
 
 	private Element getXmlNode(Document doc, InsaneNode node) {
@@ -144,7 +150,7 @@ public class XmlWritter {
 		return elmNode;
 	}
 
-	private Element getXmlNodesList(Document doc, InsaneModel model) {
+	private Element getXmlNodesList(Document doc) {
 		Element nodeList = doc.createElement("NodeList");
 		Iterator<InsaneNode> ite = model.getNodeList().iterator();
 		while (ite.hasNext()) {
@@ -176,7 +182,7 @@ public class XmlWritter {
 		return xmlElm;
 	}
 
-	private Element getXmlElementsList(Document doc, InsaneModel model) {
+	private Element getXmlElementsList(Document doc) {
 		Element elmList = doc.createElement("ElementList");
 		Iterator<InsaneElement> ite = model.getElementList().iterator();
 		while (ite.hasNext()) {
@@ -185,5 +191,46 @@ public class XmlWritter {
 		}
 		return elmList;
 	}
+	
+	private void setIterativeStrategy(Document doc) {
+		Node iterativeStrategy = doc.getElementsByTagName("IterativeStrategy").item(0);
+
+		// Setting load-factor
+		Node loadFactor = iterativeStrategy.getAttributes().getNamedItem("LoadFactor");
+		loadFactor.setNodeValue(model.getIterativeStrategy().getLoadFactorToString());
+		
+		// Setting node control
+		Node nodeControl = doc.createElement("NodeControl");
+		nodeControl.setTextContent(model.getIterativeStrategy().getNodeControl().getLabelToString());
+		iterativeStrategy.appendChild(nodeControl);
+		
+		// Setting direction control
+		Node directionControl = doc.createElement("DirectionControl");
+		directionControl.setTextContent(model.getIterativeStrategy().getDirectionControl());
+		iterativeStrategy.appendChild(directionControl);
+	}
+	
+	private void fillLoading(Document doc) {
+		Node loading = doc.getElementsByTagName("Loading").item(0);
+		ArrayList<NodeLoad> loadList = model.getLoadList();
+		Iterator<NodeLoad> ite = loadList.iterator();
+		while (ite.hasNext()) {
+			NodeLoad load = ite.next();
+			Element nodeLoad = doc.createElement("NodeLoad");
+			nodeLoad.setAttribute("node", load.getNode().getLabelToString());
+			nodeLoad.setTextContent(load.getLoad());
+			loading.appendChild(nodeLoad);
+		}
+	}
+
+	public InsaneModel getModel() {
+		return model;
+	}
+
+	public void setModel(InsaneModel model) {
+		this.model = model;
+	}
+	
+	
 
 }

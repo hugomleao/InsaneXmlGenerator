@@ -6,6 +6,7 @@ public enum ElementType {
 	//NAME_OF_ENUM(gmeshType, numberOfNodes, InsaneElementName, InsaneIntegrationOrder)
 	LINE_2_NODES(1, 2, "", ""),
 	TRIANGLE_3_NODES(2, 3, "ParametricElement.Triangular.T3", "1 0 0"),
+	QUADRANGLE_4_NODES(3, 4, "ParametricElement.Quadrilateral.Q4", "2 2 0"),
 	POINT_1_NODE(15, 1, "", "");
 	
 	private final int gmshType;

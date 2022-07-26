@@ -4,7 +4,8 @@ import java.util.HashMap;
 
 public enum AnalysisModel {
 	//ANALYSIS_MODEL_NAME("Name in Insane", "DOFs labels")
-	PLANE_STRESS_PHASE_FIELD_STAGGERED_SOLVER("PlaneStressPhaseFieldStaggeredSolver", "Dx Dy PF");
+	PLANE_STRESS_PHASE_FIELD_STAGGERED_SOLVER("PlaneStressPhaseFieldStaggeredSolver", "Dx Dy PF"),
+	PLANE_STRAIN_PHASE_FIELD_STAGGERED_SOLVER("PlaneStrainPhaseFieldStaggeredSolver", "Dx Dy PF");
 	
 	private final String insaneName;
 	private final String dofLabels;
