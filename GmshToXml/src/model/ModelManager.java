@@ -52,7 +52,7 @@ public class ModelManager {
 	public void createMshFile() {
 	    try {
 	    	ProcessBuilder processBuilder = new ProcessBuilder();
-			processBuilder.command("cmd", "/c", "gmsh C:\\Users\\hugom\\Desktop\\Mesh.geo -2");
+			processBuilder.command("cmd", "/c", "gmsh " + geoFilePath + " -2");
 			Process process = processBuilder.start();
 			process.waitFor();
 		} catch (IOException | InterruptedException e) {
